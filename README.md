@@ -1,4 +1,4 @@
-# KL25Z-USB-Keyboard
+# KL25Z USB Keyboard
 This repository implements a USB keyboard using a minimilistic USB protocol stack for FRDM KL25z. The code is configured to write "Hello World" everytime the board is plugged in.
 
 ## Credits
