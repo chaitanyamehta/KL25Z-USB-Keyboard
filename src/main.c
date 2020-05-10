@@ -32,7 +32,7 @@ int main(void)
 	}
 }
 
-bool wait_flag;
+volatile bool wait_flag;
 static void send(uint8_t *buffer)
 {
 	wait_flag = true;
