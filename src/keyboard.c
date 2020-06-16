@@ -1,9 +1,16 @@
+#include <cmsis_os2.h>
 #include <stdbool.h>
 #include "usb.h"
 #include "usb_keyboard.h"
 #include "keyboard.h"
 
-volatile bool wait_flag;
+
+#define TX_COMPLETED 1
+
+osEventFlagsId_t e_Keyboard;
+
+const osEventFlagsAttr_t e_Keyboard_attr = {      
+};
 
 static void keyboard_endpoint_handler(uint8_t endpoint, uint8_t token_pid, buffer_descriptor_t *buffer_descriptor);
 uint8_t keyboard_endpoint_rx[2][ENDPOINT1_SIZE];
@@ -27,7 +34,10 @@ static void keyboard_endpoint_handler(uint8_t endpoint, uint8_t token_pid, buffe
 		{
 			endpoint_prepare_next_tx(endpoint);
 		}
-		wait_flag = false;
+		else
+		{
+			osEventFlagsSet(e_Keyboard, TX_COMPLETED);
+		}
 		break;
 	case PID_OUT:
 		break;
@@ -41,29 +51,30 @@ static void keyboard_endpoint_handler(uint8_t endpoint, uint8_t token_pid, buffe
 void Keyboard_Init()
 {
 	USB_SetEndpoint(1, &endpoint1);
+	e_Keyboard = osEventFlagsNew(&e_Keyboard_attr);
 }
 
 void Keyboard_Keystroke(uint8_t key, uint8_t modifier)
 {
-	wait_flag = true;
 	uint8_t buffer[ENDPOINT1_SIZE] = {0};
 	
 	// Key Press
 	buffer[0] = modifier;
 	buffer[2] = key;
 	endpoint1.tx_data = buffer;
-	endpoint1.tx_data_length = ENDPOINT1_SIZE;
+	endpoint1.tx_data_length = ENDPOINT1_SIZE;	
 	endpoint_prepare_next_tx(1);
-	while (wait_flag);
+	osEventFlagsWait(e_Keyboard, TX_COMPLETED, osFlagsWaitAll, osWaitForever);
+	osEventFlagsClear(e_Keyboard, TX_COMPLETED);
 	
-	wait_flag = true;
 	// Key Release
 	buffer[0] = 0;
 	buffer[2] = 0;
 	endpoint1.tx_data = buffer;
 	endpoint1.tx_data_length = ENDPOINT1_SIZE;
 	endpoint_prepare_next_tx(1);
-	while (wait_flag);
+	osEventFlagsWait(e_Keyboard, TX_COMPLETED, osFlagsWaitAll, osWaitForever);
+	osEventFlagsClear(e_Keyboard, TX_COMPLETED);
 }
 
 void Keyboard_Print(char *str)
