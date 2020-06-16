@@ -48,6 +48,7 @@
 #define USB_KEY_9 38
 #define USB_KEY_0 39
 
+#define USB_KEY_ENTER 40
 #define USB_KEY_SPACE 44
 
 #endif
