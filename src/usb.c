@@ -238,6 +238,7 @@ static bool endpoint_setup(endpoint_t *endpoint, usb_setup_packet_t *setup)
 	case 0x0500: // set address (wait for IN packet)
 		break;
 	case 0x0900: // set configuration
+		// we only have one configuration for now
 		break;
 	case 0x0680: // get descriptor
 	case 0x0681:
@@ -270,6 +271,13 @@ static bool endpoint_setup(endpoint_t *endpoint, usb_setup_packet_t *setup)
 			stall = true;
 		}
 		break;
+	// class specific requests
+	// case 0x01A1: // get report
+	// case 0x02A1: // get idle
+	// case 0x03A1: // get protocol
+	// case 0x0921: // set report
+	// case 0x0A21: // set idle
+	case 0x0B21: // set protocol
 	default:
 		stall = true;
 		break;
